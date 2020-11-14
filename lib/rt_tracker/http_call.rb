@@ -54,7 +54,7 @@ module RtTracker
       }
 
       ::Net::HTTP.start(uri.host, uri.port, options) do |http|
-        request = METHODS.fetch(method.to_sym).new(uri)
+        request = build_request(method, uri)
 
         headers.each do |key, value|
           request[key.to_s] = value
@@ -74,6 +74,13 @@ module RtTracker
 
         [code, headers, body]
       end
+    end
+
+    def build_request(method, uri)
+      request = METHODS.fetch(method.to_sym)
+      request.new(uri)
+    rescue ArgumentError => e
+      raise ::URI::InvalidURIError, e.message
     end
 
     def log(what, start, url, method, headers, body, result)

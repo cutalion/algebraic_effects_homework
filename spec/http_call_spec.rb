@@ -51,16 +51,16 @@ RSpec.describe RtTracker::HTTPCall, :webrick do
       expect(error).to be_a(SocketError)
     end
 
-    it 'catches ECONNREFUSED/EADDRNOTAVAIL' do
+    it 'catches invalid URL' do
       error = http_call.(
-        url: 'such',
+        url: 'invalid',
         method: 'post',
         headers: {
           'Content-Type' => 'plain/text'
         }
       ).failure
 
-      expect([Errno::ECONNREFUSED, Errno::EADDRNOTAVAIL]).to include(error.class)
+      expect([URI::InvalidURIError]).to include(error.class)
     end
 
     it 'catches timeout' do
