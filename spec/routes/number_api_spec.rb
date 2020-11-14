@@ -43,17 +43,34 @@ RSpec.describe RtTracker::Routes::NumberAPI do
 
     context 'failure' do
       context 'COVID API failure' do
-        before do
-          expect(gateway).to receive(:get).with(
-            path: '/country/russia'
-          ).and_return(Failure('💥'))
+        context 'unhandled failure' do
+          before do
+            expect(gateway).to receive(:get).with(
+              path: '/country/russia'
+            ).and_return(Failure('💥'))
+          end
+
+          specify do
+            get '/numbers/russia'
+
+            expect(status).to eql(503)
+            expect(json_response).to eql(error: 'service unavailable')
+          end
         end
 
-        specify do
-          get '/numbers/russia'
+        context 'unknown country' do
+          before do
+            expect(gateway).to receive(:get).with(
+              path: '/country/ussr'
+            ).and_return(Failure([:bad_status_code, 404]))
+          end
 
-          expect(status).to eql(503)
-          expect(json_response).to eql(error: 'service unavailable')
+          specify do
+            get '/numbers/ussr'
+
+            expect(status).to eql(404)
+            expect(json_response).to eql(error: 'Country not found')
+          end
         end
       end
 
