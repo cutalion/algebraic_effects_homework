@@ -81,9 +81,28 @@ RSpec.describe RtTracker::HTTPCall, :webrick do
 
       expect(error).to be_a(Timeout::Error)
     end
+
+    it 'catches 404' do
+      server.mount_proc '/404' do |req, res|
+        res.status = 404
+      end
+
+      result = run_server do
+        http_call.(
+          url: "http://localhost:#{port}/404",
+          method: 'get',
+          headers: {
+            'Content-Type' => 'plain/text'
+          }
+        )
+      end
+
+      code, _headers, _body = result.value!
+      expect(code).to eq 404
+    end
   end
 
-  it 'wotks with https' do
+  it 'works with https' do
     result = http_call.(
       url: 'https://google.com/',
       method: 'get',
